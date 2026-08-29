@@ -180,26 +180,16 @@ export default function DashboardLayout({
           <X className="h-5 w-5" />
         </button>
 
-        {/* IDENTITAS PENGURUS (Desktop Header) */}
-        <div className="flex flex-col items-center text-center pb-6 border-b border-[#5E7A3E]/20 mb-6 mt-4 md:mt-0">
-          
-          {/* Avatar Bulat Foto Profil Petugas (Desktop) */}
-          {profile.foto_url ? (
-            <img 
-              src={profile.foto_url} 
-              alt="Foto Profil Petugas" 
-              className="h-16 w-16 rounded-full border-2 border-[#5E7A3E] shadow-sm mb-3 object-cover"
-            />
-          ) : (
-            <div className="bg-[#5E7A3E] text-white h-16 w-16 rounded-full flex items-center justify-center font-black text-2xl shadow-inner mb-3">
-              {profile.nama.slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          
-          <h2 className="text-base font-black truncate max-w-[200px]">{profile.nama}</h2>
-          <span className="text-[10px] font-black uppercase tracking-wider bg-[#5E7A3E] text-white px-2 py-0.5 rounded-full mt-1">
-            Role: {profile.role}
-          </span>
+        {/* LOGO DUSUN & JUDUL APLIKASI (Atas Sidebar) */}
+        <div className="flex flex-col items-center text-center pb-4 border-b border-[#5E7A3E]/20 mb-4 mt-2 md:mt-0">
+          <img 
+            src="/image/logoBasah.png" 
+            alt="Logo BASAH Rejosari" 
+            className="h-14 w-auto object-contain mb-2 drop-shadow-sm" 
+          />
+          <h1 className="text-xs font-black uppercase tracking-wider text-[#5E7A3E]">
+            BASAH REJOSARI
+          </h1>
         </div>
 
         {/* MENU UTAMA */}
@@ -227,13 +217,35 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* TOMBOL LOGOUT */}
-        <div className="pt-4 border-t border-[#5E7A3E]/20 mt-4">
+        {/* PROFIL PENGURUS & TOMBOL LOGOUT (Bawah Sidebar) */}
+        <div className="pt-3 border-t border-[#5E7A3E]/20 mt-3 space-y-2">
+          {/* Card Profil Pengurus */}
+          <div className="flex items-center gap-3 bg-white/80 p-2.5 rounded-[1.25rem] border border-[#5E7A3E]/15 shadow-sm">
+            {profile.foto_url ? (
+              <img 
+                src={profile.foto_url} 
+                alt="Foto Profil Petugas" 
+                className="h-10 w-10 rounded-full border-2 border-[#5E7A3E] object-cover shrink-0"
+              />
+            ) : (
+              <div className="bg-[#5E7A3E] text-white h-10 w-10 rounded-full flex items-center justify-center font-black text-xs shrink-0">
+                {profile.nama.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs font-black truncate text-[#202A14]">{profile.nama}</h2>
+              <span className="text-[8px] font-black uppercase tracking-wider bg-[#5E7A3E] text-white px-1.5 py-0.5 rounded-full inline-block mt-0.5">
+                Role: {profile.role}
+              </span>
+            </div>
+          </div>
+
+          {/* Tombol Keluar */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 py-3 px-4 rounded-[1.25rem] text-sm font-black text-red-700 hover:bg-red-50 hover:text-red-800 transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-[1.25rem] text-xs font-black text-red-700 hover:bg-red-50 hover:text-red-800 transition-all duration-200"
           >
-            <LogOut className="h-5 w-5 text-red-700" />
+            <LogOut className="h-4 w-4 text-red-700" />
             Keluar Sistem
           </button>
         </div>

@@ -116,6 +116,25 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
 
+  // Splash Screen States
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => {
+      setSplashFading(true);
+    }, 1500);
+
+    const timer2 = setTimeout(() => {
+      setShowSplash(false);
+    }, 2100);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -393,12 +412,48 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F9F9F6] text-[#202A14] flex flex-col font-sans">
       
-      {/* HEADER UTAMA (Earthy Sage) */}
-      <header className="bg-[#5E7A3E] text-white py-8 px-6 rounded-b-[2.5rem] shadow-md flex flex-col items-center justify-center text-center">
-        <div className="bg-[#E2E8D5] p-3 rounded-full mb-3 shadow-inner">
-          <Trash2 className="h-8 w-8 text-[#5E7A3E]" />
+      {/* ANIMASI SPLASH SCREEN AWAAL LOAD PAGE */}
+      {showSplash && (
+        <div 
+          className={`fixed inset-0 z-[100] bg-[#F9F9F6] flex flex-col items-center justify-center p-6 text-center transition-all duration-700 ease-in-out ${
+            splashFading ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
+          }`}
+        >
+          <div className="relative mb-6">
+            <div className="absolute -inset-4 rounded-full bg-[#E2E8D5]/60 animate-ping"></div>
+            <img 
+              src="/image/logoBasah.png" 
+              alt="Logo BASAH Rejosari" 
+              className="h-28 w-auto object-contain relative z-10 drop-shadow-lg" 
+            />
+          </div>
+          
+          <h1 className="text-2xl font-black text-[#5E7A3E] tracking-tight uppercase">
+            BASAH REJOSARI
+          </h1>
+          <p className="text-xs font-extrabold text-[#202A14]/70 mt-1 uppercase tracking-widest">
+            Bank Sampah Dusun Rejosari
+          </p>
+
+          <div className="w-48 bg-[#E2E8D5] h-1.5 rounded-full overflow-hidden mt-8 shadow-inner">
+            <div className="bg-[#5E7A3E] h-full rounded-full animate-[pulse_1s_infinite] w-full"></div>
+          </div>
+          <span className="text-[10px] font-extrabold text-[#202A14]/50 mt-2 tracking-wider uppercase">
+            Memuat Sistem Digitalisasi...
+          </span>
         </div>
-        <h1 className="text-3xl font-extrabold tracking-wide uppercase">BASAH Rejosari</h1>
+      )}
+
+      {/* HEADER UTAMA (Earthy Sage & Official Logo) */}
+      <header className="bg-[#5E7A3E] text-white py-8 px-6 rounded-b-[2.5rem] shadow-md flex flex-col items-center justify-center text-center">
+        <div className="bg-white p-3.5 rounded-[2rem] shadow-md mb-3 inline-flex items-center justify-center">
+          <img 
+            src="/image/logoBasah.png" 
+            alt="Logo BASAH Rejosari" 
+            className="h-20 w-auto object-contain" 
+          />
+        </div>
+        <h1 className="text-3xl font-black tracking-wide uppercase">BASAH Rejosari</h1>
         <p className="text-sm font-medium opacity-90 mt-1">
           BAnk SAmpaH Rejosari - Dusun Rejosari, Wedomartani
         </p>
@@ -428,7 +483,7 @@ export default function Home() {
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#202A14]/70">Warga</span>
             <span className="text-base font-black mt-0.5">{statistik.totalNasabah} KK</span>
-            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Cari Saldo 🔍</span>
+            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Cari Saldo</span>
           </button>
 
           {/* Card Sampah (Clickable untuk memicu pop-up penimbangan) */}
@@ -443,7 +498,7 @@ export default function Home() {
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#202A14]/70">Sampah</span>
             <span className="text-base font-black mt-0.5">{statistik.totalSampah.toFixed(1)} kg</span>
-            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Lihat Detail 📦</span>
+            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Lihat Detail</span>
           </button>
 
           {/* Card Total Tabungan Warga (Clickable untuk memicu pop-up transaksi) */}
@@ -458,7 +513,7 @@ export default function Home() {
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#202A14]/70">Tabungan Warga</span>
             <span className="text-xs font-black mt-0.5 whitespace-nowrap">{formatRupiah(statistik.totalTabungan)}</span>
-            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Mutasi Kas 💰</span>
+            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Mutasi Kas</span>
           </button>
 
           {/* Card Mitra Pengepul (Clickable untuk memicu pop-up mitra) */}
@@ -473,7 +528,7 @@ export default function Home() {
             </div>
             <span className="text-[10px] uppercase font-bold tracking-wider text-[#202A14]/70">Mitra Pengepul</span>
             <span className="text-base font-black mt-0.5">{statistik.totalPengepul} Mitra</span>
-            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Info Mitra 🚚</span>
+            <span className="text-[8px] text-[#202A14]/50 font-bold mt-1">Info Mitra</span>
           </button>
 
         </section>
@@ -525,7 +580,7 @@ export default function Home() {
               <div key={nas.nasabah_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {nas.foto_url ? (
                     <img src={nas.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -554,7 +609,7 @@ export default function Home() {
               <div key={nas.nasabah_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {nas.foto_url ? (
                     <img src={nas.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -583,7 +638,7 @@ export default function Home() {
               <div key={pet.petugas_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {pet.foto_url ? (
                     <img src={pet.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -676,7 +731,7 @@ export default function Home() {
         <div className="bg-[#E2E8D5]/30 p-4 rounded-[2rem] flex items-start gap-2.5">
           <Info className="h-4.5 w-4.5 text-[#5E7A3E] shrink-0 mt-0.5" />
           <div className="text-[11px] text-[#202A14]/85 leading-relaxed font-semibold">
-            <p className="font-black text-[#202A14]">💡 Informasi Pengurus Dusun:</p>
+            <p className="font-black text-[#202A14]">Informasi Pengurus Dusun:</p>
             <p className="mt-1 font-bold text-[#202A14]/70">
               Jika Anda menambah kategori sampah baru di Pengaturan, pastikan Anda juga mengisi acuan harga di <strong>Tab Harga Nasabah</strong> dan <strong>Tab Harga Mitra</strong> agar kategori tersebut dapat langsung muncul di halaman depan ini dan siap ditimbang.
             </p>
@@ -720,7 +775,7 @@ export default function Home() {
             {/* Header */}
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-base font-black uppercase tracking-tight flex items-center gap-2">
-                🔎 Cari Tabungan Warga
+                Cari Tabungan Warga
               </h2>
               <button 
                 type="button" 
@@ -801,7 +856,7 @@ export default function Home() {
             {/* Header */}
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-base font-black uppercase tracking-tight">
-                📖 Buku Tabungan Warga
+                Buku Tabungan Warga
               </h2>
               <div className="flex gap-2">
                 <button
@@ -927,7 +982,7 @@ export default function Home() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                📦 10 Timbangan Sampah Terakhir
+                10 Timbangan Sampah Terakhir
               </h2>
               <button 
                 type="button" 
@@ -990,7 +1045,7 @@ export default function Home() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                💰 10 Transaksi Terakhir Warga
+                10 Transaksi Terakhir Warga
               </h2>
               <button 
                 type="button" 
@@ -1058,7 +1113,7 @@ export default function Home() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                🚚 Daftar Mitra Pengepul Aktif
+                Daftar Mitra Pengepul Aktif
               </h2>
               <button 
                 type="button" 

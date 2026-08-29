@@ -606,6 +606,47 @@ export default function SettingsPage() {
     }
   };
 
+  const handleOfficerDelete = async (officer: Officer) => {
+    let currentEmail = "";
+    if (typeof window !== "undefined") {
+      const userProfileStr = localStorage.getItem("user_profile");
+      if (userProfileStr) {
+        try {
+          const parsed = JSON.parse(userProfileStr);
+          currentEmail = parsed.email || "";
+        } catch (e) {}
+      }
+    }
+
+    const isSelf = currentEmail && officer.email.toLowerCase() === currentEmail.toLowerCase();
+    
+    if (isSelf) {
+      if (!confirm(`Peringatan: Anda akan menghapus akun Anda sendiri (${officer.nama}). Apakah Anda yakin?`)) {
+        return;
+      }
+    } else {
+      if (!confirm(`Apakah Anda yakin ingin menghapus akun ${officer.role.toUpperCase()} "${officer.nama}" (${officer.email})?`)) {
+        return;
+      }
+    }
+
+    if (usingMock) {
+      setOfficers(prev => prev.filter(o => o.id !== officer.id));
+      setSuccessMsg(`Akun pengurus ${officer.nama} berhasil dihapus.`);
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("users").delete().eq("id", officer.id);
+      if (error) throw error;
+
+      loadSettings();
+      setSuccessMsg(`Akun ${officer.role} ${officer.nama} berhasil dihapus.`);
+    } catch (err: any) {
+      alert(err.message || "Gagal menghapus akun pengurus.");
+    }
+  };
+
   const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -917,12 +958,22 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleOpenEditOfficer(o)}
-                  className="bg-zinc-100 hover:bg-zinc-200 p-2.5 rounded-full text-[#5E7A3E]"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenEditOfficer(o)}
+                    className="bg-zinc-100 hover:bg-zinc-200 p-2.5 rounded-full text-[#5E7A3E] transition-all"
+                    title="Ubah Profil / Peran Pengurus"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleOfficerDelete(o)}
+                    className="bg-red-50 hover:bg-red-100 p-2.5 rounded-full text-red-600 transition-all"
+                    title="Hapus Akun Pengurus"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

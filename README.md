@@ -1,17 +1,17 @@
-# ♻️ Web App Pencatatan Bank Sampah Rejosari
+# Web App Pencatatan Bank Sampah Rejosari
 
 Sistem informasi berbasis web yang dirancang untuk digitalisasi pencatatan, transparansi publik, pengolahan transaksi, dan manajemen keuangan **Bank Sampah**. Aplikasi ini dikembangkan sebagai bagian dari program kerja **KKN Wedomartani** untuk mempermudah operasional pengurus dan memberikan akses informasi real-time bagi nasabah/masyarakat.
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-### 🌐 1. Portal Publik (`/`)
+### 1. Portal Publik (`/`)
 - **Transparansi Statistics**: Menampilkan total sampah terkelola, total tabungan terdistribusi, serta dampak positif terhadap lingkungan (pengurangan emisi CO₂, penghematan energi, dll.).
 - **Papan Peringkat (Leaderboard)**: Mengapresiasi kontribusi nasabah dan wilayah RT teraktif dalam menyetor sampah.
 - **Pencarian & Cek Saldo Nasabah**: Nasabah dapat mengecek saldo tabungan dan riwayat transaksi setoran secara mandiri hanya dengan menggunakan Nomor Induk / ID Nasabah.
 
-### 🔐 2. Dashboard Pengurus & Operasional (`/dashboard`)
+### 2. Dashboard Pengurus & Operasional (`/dashboard`)
 - **Ringkasan Analitik**: Visualisasi grafik tren setoran harian/bulanan, distribusi jenis sampah, dan indikator keuangan.
 - **Input Setor Sampah (`/dashboard/setor`)**: Formulir penimbangan & pencatatan transaksi sampah masuk secara cepat berbasis kategori sampah dan kalkulasi otomatis nominal rupiah.
 - **Manajemen Data Nasabah (`/dashboard/nasabah`)**: Pengelolaan profil nasabah, akumulasi berat sampah, riwayat saldo, serta cetak/ekspor data.
@@ -24,7 +24,7 @@ Sistem informasi berbasis web yang dirancang untuk digitalisasi pencatatan, tran
 
 ---
 
-## 🛠️ Teknologi & Tools
+## Teknologi & Tools
 
 - **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
 - **UI & Icon**: [React 19](https://react.dev/), [Tailwind CSS v4](https://tailwindcss.com/), [Lucide React Icons](https://lucide.dev/)
@@ -33,7 +33,7 @@ Sistem informasi berbasis web yang dirancang untuk digitalisasi pencatatan, tran
 
 ---
 
-## 📁 Struktur Direktori Project
+## Struktur Direktori Project
 
 ```text
 pencatatanbanksampah-webapp/
@@ -55,7 +55,7 @@ pencatatanbanksampah-webapp/
 
 ---
 
-## 🚀 Panduan Memulai (Quick Start)
+## Panduan Memulai (Quick Start)
 
 ### 1. Prasyarat
 Pastikan kamu telah menginstall:
@@ -95,7 +95,7 @@ Buka browser di [http://localhost:3000](http://localhost:3000) untuk melihat has
 
 ---
 
-## 📦 Build & Production
+## Build & Production
 
 Untuk membuat build produksi:
 ```bash
@@ -109,10 +109,11 @@ npm run start
 
 ---
 
-## 🤝 Lisensi & Kontribusi
+## Lisensi & Kontribusi
 
 Dikembangkan oleh **Tim KKN Wedomartani** untuk keberlanjutan lingkungan dan pemberdayaan ekonomi masyarakat berbasis Bank Sampah.
 
 ---
-*Dibuat dengan ❤️ untuk Masyarakat Wedomartani.*
+*Dibuat untuk Masyarakat Wedomartani.*
+
 

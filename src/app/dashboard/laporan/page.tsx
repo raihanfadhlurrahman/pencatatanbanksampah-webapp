@@ -39,23 +39,59 @@ const MOCK_SUMMARY: SummaryData = {
 
 export default function LaporanPage() {
   const [summary, setSummary] = useState<SummaryData>(MOCK_SUMMARY);
+  const [periodRange, setPeriodRange] = useState<"1_bulan" | "2_bulan" | "3_bulan" | "6_bulan" | "1_tahun">("1_bulan");
   const [selectedMonth, setSelectedMonth] = useState("08"); // default Agustus
   const [selectedYear, setSelectedYear] = useState("2026");
+  const [periodText, setPeriodText] = useState("");
   const [loading, setLoading] = useState(false);
   const [usingMock, setUsingMock] = useState(false);
 
   useEffect(() => {
     loadLaporan();
-  }, [selectedMonth, selectedYear]);
+  }, [periodRange, selectedMonth, selectedYear]);
+
+  const getNamaBulan = (bulan: string) => {
+    const listBulan: Record<string, string> = {
+      "01": "Januari", "02": "Februari", "03": "Maret", "04": "April",
+      "05": "Mei", "06": "Juni", "07": "Juli", "08": "Agustus",
+      "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
+    };
+    return listBulan[bulan] || "";
+  };
 
   const loadLaporan = async () => {
     try {
       setLoading(true);
       
-      const startDate = `${selectedYear}-${selectedMonth}-01T00:00:00Z`;
-      // Hitung akhir bulan
-      const endDay = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
-      const endDate = `${selectedYear}-${selectedMonth}-${endDay}T23:59:59Z`;
+      let startDate = "";
+      let endDate = "";
+      let textLabel = "";
+
+      const year = parseInt(selectedYear);
+      const month = parseInt(selectedMonth);
+
+      if (periodRange === "1_tahun") {
+        startDate = `${selectedYear}-01-01T00:00:00Z`;
+        endDate = `${selectedYear}-12-31T23:59:59Z`;
+        textLabel = `Tahun ${selectedYear}`;
+      } else {
+        const monthsBack = periodRange === "2_bulan" ? 1 : periodRange === "3_bulan" ? 2 : periodRange === "6_bulan" ? 5 : 0;
+        const lastDay = new Date(year, month, 0).getDate();
+        endDate = `${selectedYear}-${selectedMonth.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59Z`;
+
+        const startMonthObj = new Date(year, month - 1 - monthsBack, 1);
+        const startY = startMonthObj.getFullYear();
+        const startM = String(startMonthObj.getMonth() + 1).padStart(2, '0');
+        startDate = `${startY}-${startM}-01T00:00:00Z`;
+
+        if (monthsBack === 0) {
+          textLabel = `${getNamaBulan(selectedMonth)} ${selectedYear}`;
+        } else {
+          textLabel = `${getNamaBulan(startM)} ${startY} - ${getNamaBulan(selectedMonth)} ${selectedYear}`;
+        }
+      }
+
+      setPeriodText(textLabel);
 
       // Fetch Setoran
       const { data: setoranData, error: setError } = await supabase
@@ -117,14 +153,12 @@ export default function LaporanPage() {
         if (k.tipe === "masuk" && k.kategori !== "Penjualan Pengepul") {
           kasMasukLain += Number(k.nominal);
         } else if (k.tipe === "keluar") {
-          // Kita pisahkan pencairan saldo warga dari kas keluar lain agar tidak double count di form cetak
           if (k.kategori !== "Pencairan Saldo Nasabah") {
             kasKeluarLain += Number(k.nominal);
           }
         }
       });
 
-      // Surplus kas = (Penjualan Pengepul + Pemasukan Lain) - (Pencairan Saldo + Pengeluaran Lain)
       const surplusKas = (totalPenjualanNilai + kasMasukLain) - (totalPencairan + kasKeluarLain);
 
       setSummary({
@@ -158,15 +192,6 @@ export default function LaporanPage() {
     }).format(angka);
   };
 
-  const getNamaBulan = (bulan: string) => {
-    const listBulan: Record<string, string> = {
-      "01": "Januari", "02": "Februari", "03": "Maret", "04": "April",
-      "05": "Mei", "06": "Juni", "07": "Juli", "08": "Agustus",
-      "09": "September", "10": "Oktober", "11": "November", "12": "Desember"
-    };
-    return listBulan[bulan] || "";
-  };
-
   return (
     <div className="space-y-6">
       
@@ -175,7 +200,7 @@ export default function LaporanPage() {
         <div>
           <h1 className="text-2xl font-black uppercase text-[#202A14] tracking-tight flex items-center gap-2">
             <FileText className="h-6 w-6 text-[#5E7A3E]" />
-            Laporan Bulanan Rekapitulasi
+            Laporan Rekapitulasi Operasional
           </h1>
           <p className="text-xs font-bold text-[#202A14]/70 mt-0.5">
             Generasikan ringkasan sirkulasi tabungan dan operasional kas untuk dicetak sebagai berkas arsip
@@ -198,26 +223,41 @@ export default function LaporanPage() {
           PERIODE LAPORAN:
         </div>
         
-        <div className="flex gap-2">
-          {/* Dropdown Bulan */}
+        <div className="flex flex-wrap gap-2">
+          {/* Dropdown Rentang Periode */}
           <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
+            value={periodRange}
+            onChange={(e) => setPeriodRange(e.target.value as any)}
             className="px-4 py-2.5 bg-[#F9F9F6] border-2 border-[#E2E8D5] focus:border-[#5E7A3E] rounded-full text-xs font-black outline-none"
           >
-            <option value="01">Januari</option>
-            <option value="02">Februari</option>
-            <option value="03">Maret</option>
-            <option value="04">April</option>
-            <option value="05">Mei</option>
-            <option value="06">Juni</option>
-            <option value="07">Juli</option>
-            <option value="08">Agustus</option>
-            <option value="09">September</option>
-            <option value="10">Oktober</option>
-            <option value="11">November</option>
-            <option value="12">Desember</option>
+            <option value="1_bulan">1 Bulan (Bulanan)</option>
+            <option value="2_bulan">2 Bulan Terakhir</option>
+            <option value="3_bulan">3 Bulan (Triwulan)</option>
+            <option value="6_bulan">6 Bulan (Semester)</option>
+            <option value="1_tahun">1 Tahun (Tahunan)</option>
           </select>
+
+          {/* Dropdown Acuan Bulan */}
+          {periodRange !== "1_tahun" && (
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-4 py-2.5 bg-[#F9F9F6] border-2 border-[#E2E8D5] focus:border-[#5E7A3E] rounded-full text-xs font-black outline-none"
+            >
+              <option value="01">Januari</option>
+              <option value="02">Februari</option>
+              <option value="03">Maret</option>
+              <option value="04">April</option>
+              <option value="05">Mei</option>
+              <option value="06">Juni</option>
+              <option value="07">Juli</option>
+              <option value="08">Agustus</option>
+              <option value="09">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+          )}
 
           {/* Dropdown Tahun */}
           <select
@@ -243,19 +283,21 @@ export default function LaporanPage() {
       {/* ======================================================== */}
       <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-[#E2E8D5]/40 shadow-sm print:shadow-none print:border-none print:p-0 space-y-8 max-w-3xl mx-auto">
         
-        {/* KOP LAPORAN DUSUN REJOSARI */}
-        <div className="text-center border-b-4 border-[#202A14] pb-4 flex flex-col items-center">
-          <div className="bg-[#E2E8D5] p-2.5 rounded-full text-[#5E7A3E] mb-2 print:border print:border-[#5E7A3E]">
-            <Award className="h-7 w-7" />
-          </div>
+        {/* KOP LAPORAN DUSUN REJOSARI DENGAN LOGO RESMI */}
+        <div className="text-center border-b-4 border-[#202A14] pb-5 flex flex-col items-center">
+          <img 
+            src="/image/logoBasah.png" 
+            alt="Logo BASAH Rejosari" 
+            className="h-20 w-auto object-contain mb-3 drop-shadow-sm" 
+          />
           <h2 className="text-xl font-black tracking-wider uppercase text-[#202A14]">
-            REKAPITULASI BULANAN BANK SAMPAH "BASAH REJOSARI"
+            REKAPITULASI LAPORAN BANK SAMPAH "BASAH REJOSARI"
           </h2>
           <p className="text-xs font-bold text-[#202A14]/75 mt-0.5 uppercase">
             Rukun Tetangga 01/02/03/04 Rukun Warga 18, Dusun Rejosari, Wedomartani
           </p>
-          <p className="text-[11px] font-black text-[#5E7A3E] mt-1 tracking-widest uppercase">
-            Periode Laporan: {getNamaBulan(selectedMonth)} {selectedYear}
+          <p className="text-xs font-black text-[#5E7A3E] mt-2 tracking-widest uppercase bg-[#E2E8D5]/40 px-4 py-1 rounded-full border border-[#E2E8D5]">
+            Periode Laporan: {periodText}
           </p>
         </div>
 

@@ -20,24 +20,8 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    // 1. Cek Kredensial Demo Secara Lokal Terlebih Dahulu (Agar Offline/Demo Mode 100% Stabil)
-    if (email === "admin@basah.com" && password === "admin123") {
-      console.log("Login mode Demo berhasil.");
-      localStorage.setItem("mock_session", JSON.stringify({
-        user: { email: "admin@basah.com", id: "demo-admin-id" }
-      }));
-      localStorage.setItem("user_profile", JSON.stringify({
-        email: "admin@basah.com",
-        nama: "Pak Admin Demo",
-        role: "admin"
-      }));
-      router.push("/dashboard");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // 2. Authenticate dengan Supabase Auth untuk Akun Riil
+      // Authenticate dengan Supabase Auth untuk Akun Riil
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -112,11 +96,13 @@ export default function LoginPage() {
       {/* FORM LOGIN (Terinspirasi uireference.jpg Layar 2) */}
       <div className="max-w-md w-full mx-auto px-6 py-4 flex flex-col items-center">
         
-        {/* LOGO & BRanding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex bg-[#E2E8D5] p-4 rounded-full text-[#5E7A3E] mb-3 shadow-inner">
-            <Lock className="h-8 w-8" />
-          </div>
+        {/* LOGO & Branding */}
+        <div className="text-center mb-6 flex flex-col items-center">
+          <img 
+            src="/image/logoBasah.png" 
+            alt="Logo BASAH Rejosari" 
+            className="h-20 w-auto object-contain mb-3 drop-shadow-md" 
+          />
           <h2 className="text-2xl font-black tracking-tight text-[#5E7A3E] uppercase">MASUK PENGURUS</h2>
           <p className="text-xs font-semibold text-[#202A14]/70 mt-1">
             Gunakan akun pengurus yang telah didaftarkan Admin
@@ -196,9 +182,6 @@ export default function LoginPage() {
           <p className="text-[11px] font-bold text-[#202A14]/60 leading-relaxed">
             *Belum punya akun? Akun pengurus hanya dapat dibuat oleh Admin Dusun. Hubungi pengurus utama untuk registrasi.
           </p>
-          <div className="mt-3 bg-[#E2E8D5]/30 p-2.5 rounded-[1.25rem] text-[10px] font-bold text-[#202A14]/80">
-            Demo Akun: <span className="underline">admin@basah.com</span> / kata sandi: <span className="underline">admin123</span>
-          </div>
         </div>
 
       </div>

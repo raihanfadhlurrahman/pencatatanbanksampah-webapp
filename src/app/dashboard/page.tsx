@@ -484,7 +484,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-2xl font-black block text-[#202A14]">{stats.nasabahCount} KK</span>
-            <span className="text-[10px] text-[#202A14]/50 font-bold">Warga Terdaftar 🔍</span>
+            <span className="text-[10px] text-[#202A14]/50 font-bold">Warga Terdaftar</span>
           </div>
         </button>
 
@@ -501,7 +501,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-2xl font-black block text-[#202A14]">{stats.totalSampah.toFixed(1)} kg</span>
-            <span className="text-[10px] text-[#202A14]/50 font-bold">Kumulatif Timbangan 📦</span>
+            <span className="text-[10px] text-[#202A14]/50 font-bold">Kumulatif Timbangan</span>
           </div>
         </button>
 
@@ -518,7 +518,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-2xl font-black block text-[#202A14]">{formatRupiah(stats.totalTabungan)}</span>
-            <span className="text-[10px] text-[#202A14]/50 font-bold">Total Tabungan Warga 💰</span>
+            <span className="text-[10px] text-[#202A14]/50 font-bold">Total Tabungan Warga</span>
           </div>
         </button>
 
@@ -535,7 +535,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4">
             <span className="text-2xl font-black block text-[#202A14]">{stats.pengepulCount} Mitra</span>
-            <span className="text-[10px] text-[#202A14]/50 font-bold">Kemitraan Aktif 🚚</span>
+            <span className="text-[10px] text-[#202A14]/50 font-bold">Kemitraan Aktif</span>
           </div>
         </button>
 
@@ -720,7 +720,7 @@ export default function DashboardPage() {
               <div key={nas.nasabah_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {nas.foto_url ? (
                     <img src={nas.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -749,7 +749,7 @@ export default function DashboardPage() {
               <div key={nas.nasabah_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {nas.foto_url ? (
                     <img src={nas.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -778,7 +778,7 @@ export default function DashboardPage() {
               <div key={pet.petugas_id} className="flex items-center justify-between p-2.5 bg-[#F9F9F6] rounded-2xl border border-[#E2E8D5]/20 text-xs font-semibold">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#5E7A3E] w-5 text-center">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                    {idx + 1}
                   </span>
                   {pet.foto_url ? (
                     <img src={pet.foto_url} alt="" className="h-8 w-8 rounded-full object-cover border-2 border-[#E2E8D5]" />
@@ -814,7 +814,7 @@ export default function DashboardPage() {
         <div className="bg-[#5E7A3E] text-white p-6 rounded-[2.5rem] shadow-sm flex flex-col justify-between min-h-[250px]">
           <div>
             <h3 className="text-base font-black uppercase tracking-wide border-b border-white/20 pb-2 mb-3">
-              💡 Tips Operasional
+              Tips Operasional
             </h3>
             <ul className="text-xs font-semibold space-y-3 leading-relaxed opacity-95 pl-3 list-disc">
               <li>Pastikan timbangan telah dikalibrasi ke angka nol sebelum mencatat setoran warga.</li>
@@ -841,7 +841,7 @@ export default function DashboardPage() {
             {/* Modal Header */}
             <div className="bg-amber-500 text-white p-5 flex items-center justify-between">
               <h2 className="text-base font-black uppercase tracking-tight flex items-center gap-1.5">
-                🏆 Input Vote Petugas Terbaik
+                Input Vote Petugas Terbaik
               </h2>
               <button 
                 type="button" 
@@ -946,7 +946,7 @@ export default function DashboardPage() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[85vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-base font-black uppercase tracking-tight flex items-center gap-2">
-                🔎 Daftar & Cari Warga
+                Daftar & Cari Warga
               </h2>
               <button 
                 type="button" 
@@ -1020,7 +1020,7 @@ export default function DashboardPage() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[85vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-base font-black uppercase tracking-tight">
-                📖 Buku Tabungan Warga (Admin View)
+                Buku Tabungan Warga (Admin View)
               </h2>
               <div className="flex gap-2">
                 <button
@@ -1138,7 +1138,7 @@ export default function DashboardPage() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                📦 10 Timbangan Sampah Terakhir
+                10 Timbangan Sampah Terakhir
               </h2>
               <button 
                 type="button" 
@@ -1201,7 +1201,7 @@ export default function DashboardPage() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                💰 10 Transaksi Terakhir Warga
+                10 Transaksi Terakhir Warga
               </h2>
               <button 
                 type="button" 
@@ -1269,7 +1269,7 @@ export default function DashboardPage() {
           <div className="bg-[#F9F9F6] w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col border border-[#E2E8D5] max-h-[80vh]">
             <div className="bg-[#5E7A3E] text-white p-5 flex items-center justify-between">
               <h2 className="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                🚚 Daftar Mitra Pengepul Aktif
+                Daftar Mitra Pengepul Aktif
               </h2>
               <button 
                 type="button" 
