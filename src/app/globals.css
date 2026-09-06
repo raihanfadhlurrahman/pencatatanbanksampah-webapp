@@ -24,3 +24,27 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ======================================================== */
+/* ISOLASI CETAK PRINT (HANYA BUKU TABUNGAN & LAPORAN YANG TERCETAK) */
+/* ======================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+  }
+
+  /* Sembunyikan elemen latar belakang seperti layout dashboard, nav, header, tombol */
+  header, nav, aside, footer, .print-hidden, [role="navigation"] {
+    display: none !important;
+  }
+
+  /* Hilangkan scrollbar dan margin bawaan */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}
+

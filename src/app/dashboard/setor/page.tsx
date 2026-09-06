@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, deleteStorageFile } from "@/lib/supabase";
 import { 
   ArrowDownLeft, 
   Users, 
@@ -381,6 +381,11 @@ export default function SetorPage() {
         .eq("id", setoran.id);
 
       if (deleteError) throw deleteError;
+
+      // 5. Hapus foto timbangan jika ada
+      if (setoran.foto_timbangan_url) {
+        await deleteStorageFile(setoran.foto_timbangan_url);
+      }
 
       loadData();
       alert("Transaksi setoran berhasil dibatalkan dan saldo warga disesuaikan!");

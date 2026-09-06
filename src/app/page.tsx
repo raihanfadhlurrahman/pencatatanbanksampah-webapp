@@ -18,8 +18,10 @@ import {
   Search,
   ChevronRight as ArrowRight,
   Calendar,
-  DollarSign
+  DollarSign,
+  BookOpen
 } from "lucide-react";
+import BukuTabunganModal from "@/components/BukuTabunganModal";
 
 // Tipe Data untuk State
 interface Statistik {
@@ -41,6 +43,8 @@ interface GroupedHargaMitra {
     potongan_kas: number;
     harga_beli: number;
     minimal_berat: number;
+    foto_url?: string;
+    deskripsi?: string;
   }[];
 }
 
@@ -101,6 +105,7 @@ export default function Home() {
   const [selectedNasabahHistory, setSelectedNasabahHistory] = useState<any[]>([]);
   const [selectedNasabahTotalWeight, setSelectedNasabahTotalWeight] = useState(0);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [bukuTabunganOpen, setBukuTabunganOpen] = useState(false);
 
   // Card Popup Modals States
   const [sampahModalOpen, setSampahModalOpen] = useState(false);
@@ -175,7 +180,9 @@ export default function Home() {
             minimal_berat,
             jenis_sampah (
               nama_sampah,
-              satuan
+              satuan,
+              foto_url,
+              deskripsi
             )
           `);
 
@@ -262,6 +269,8 @@ export default function Home() {
                 potongan_kas: potongan,
                 harga_beli: Math.max(0, hargaJual - potongan),
                 minimal_berat: Number(hp.minimal_berat || 0),
+                foto_url: hp.jenis_sampah?.foto_url || undefined,
+                deskripsi: hp.jenis_sampah?.deskripsi || undefined,
               };
             });
 
@@ -695,17 +704,37 @@ export default function Home() {
                 {group.items.map((item) => (
                   <div 
                     key={item.jenis_sampah_id} 
-                    className="flex items-center justify-between p-3 bg-[#F9F9F6] hover:bg-[#E2E8D5]/20 rounded-[1.25rem] border border-[#E2E8D5]/20 transition-all duration-200"
+                    className="flex items-start justify-between p-3.5 bg-[#F9F9F6] hover:bg-[#E2E8D5]/20 rounded-[1.5rem] border border-[#E2E8D5]/30 transition-all duration-200 gap-3"
                   >
-                    <div>
-                      <h4 className="text-xs font-black tracking-tight text-[#202A14]">{item.nama_sampah}</h4>
-                      <div className="text-[10px] text-[#202A14]/75 font-semibold mt-0.5">
-                        Harga Pengepul: {formatRupiah(item.harga_jual)} | Potongan: {formatRupiah(item.potongan_kas)} | Min: {item.minimal_berat} {item.satuan}
+                    <div className="flex items-start gap-3">
+                      {/* Foto Contoh Fisik Sampah */}
+                      {item.foto_url ? (
+                        <img 
+                          src={item.foto_url} 
+                          alt={item.nama_sampah} 
+                          className="h-12 w-12 rounded-2xl object-cover border border-[#E2E8D5] shadow-sm shrink-0 mt-0.5"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 bg-[#E2E8D5] text-[#5E7A3E] rounded-2xl flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                          {item.nama_sampah.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+
+                      <div>
+                        <h4 className="text-xs font-black tracking-tight text-[#202A14]">{item.nama_sampah}</h4>
+                        <div className="text-[10px] text-[#202A14]/70 font-semibold mt-0.5">
+                          Harga Pengepul: {formatRupiah(item.harga_jual)} | Potongan Kas: {formatRupiah(item.potongan_kas)} | Min: {item.minimal_berat} {item.satuan}
+                        </div>
+                        {item.deskripsi && (
+                          <p className="text-[9.5px] font-extrabold text-[#5E7A3E] mt-1 bg-[#E2E8D5]/40 px-2 py-0.5 rounded-md inline-block">
+                            Panduan Pemilahan: {item.deskripsi}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
                     {/* Harga Beli Nasabah */}
-                    <div className="flex flex-col items-end">
+                    <div className="flex flex-col items-end shrink-0">
                       <div className="bg-[#5E7A3E] text-white px-3 py-1.5 rounded-full font-black text-[11px] min-w-[70px] text-center shadow-sm">
                         {formatRupiah(item.harga_beli)}
                       </div>
@@ -960,19 +989,36 @@ export default function Home() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 bg-white border-t border-[#E2E8D5] flex gap-3">
+            <div className="p-4 bg-white border-t border-[#E2E8D5] flex gap-2">
               <button 
                 type="button" 
                 onClick={() => setDetailModalOpen(false)} 
-                className="w-full bg-[#5E7A3E] text-white font-extrabold text-xs py-3 rounded-full hover:bg-[#5E7A3E]/90 transition-all active:scale-95"
+                className="flex-1 border-2 border-[#E2E8D5] text-[#202A14] font-extrabold text-xs py-3 rounded-full hover:bg-[#E2E8D5]/20 transition-all"
               >
-                TUTUP BUKU TABUNGAN
+                TUTUP
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setBukuTabunganOpen(true)} 
+                className="flex-1 bg-[#5E7A3E] text-white font-extrabold text-xs py-3 rounded-full hover:bg-[#5E7A3E]/90 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <BookOpen className="h-4 w-4" />
+                BUKU TABUNGAN FISIK
               </button>
             </div>
 
           </div>
         </div>
       )}
+
+      {/* MODAL CETAK BUKU TABUNGAN FISIK UNTUK PUBLIK */}
+      <BukuTabunganModal
+        isOpen={bukuTabunganOpen}
+        onClose={() => setBukuTabunganOpen(false)}
+        nasabah={selectedNasabah}
+        riwayat={selectedNasabahHistory}
+        totalBerat={selectedNasabahTotalWeight}
+      />
 
       {/* ======================================================== */}
       {/* MODAL POPUP CARD 2: SAMPAH TERKUMPUL (10 TIMBANGAN TERAKHIR) */}

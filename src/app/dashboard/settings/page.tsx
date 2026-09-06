@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, deleteStorageFile } from "@/lib/supabase";
 import { 
   Settings, 
   Trash2, 
@@ -23,6 +23,8 @@ interface JenisSampah {
   id: string;
   nama_sampah: string;
   satuan: string;
+  foto_url?: string;
+  deskripsi?: string;
 }
 
 interface HargaNasabah {
@@ -97,6 +99,10 @@ export default function SettingsPage() {
   // Form Fields - Jenis Sampah
   const [namaSampah, setNamaSampah] = useState("");
   const [satuan, setSatuan] = useState("kg");
+  const [sampahFotoFile, setSampahFotoFile] = useState<File | null>(null);
+  const [sampahFotoPreview, setSampahFotoPreview] = useState<string | null>(null);
+  const [sampahFotoUrl, setSampahFotoUrl] = useState("");
+  const [sampahDeskripsi, setSampahDeskripsi] = useState("");
 
   // Form Fields - Harga Nasabah
   const [selectedJenisId, setSelectedJenisId] = useState("");
@@ -235,6 +241,10 @@ export default function SettingsPage() {
     setEditingSampah(null);
     setNamaSampah("");
     setSatuan("kg");
+    setSampahFotoFile(null);
+    setSampahFotoPreview(null);
+    setSampahFotoUrl("");
+    setSampahDeskripsi("");
     setErrorMsg(null);
     setSampahModalOpen(true);
   };
@@ -243,6 +253,10 @@ export default function SettingsPage() {
     setEditingSampah(s);
     setNamaSampah(s.nama_sampah);
     setSatuan(s.satuan);
+    setSampahFotoFile(null);
+    setSampahFotoPreview(s.foto_url || null);
+    setSampahFotoUrl(s.foto_url || "");
+    setSampahDeskripsi(s.deskripsi || "");
     setErrorMsg(null);
     setSampahModalOpen(true);
   };
@@ -251,32 +265,82 @@ export default function SettingsPage() {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
+    setSaving(true);
 
     const isEditing = !!editingSampah;
+    let finalFotoUrl = sampahFotoUrl;
 
     if (usingMock) {
+      if (sampahFotoFile) {
+        finalFotoUrl = URL.createObjectURL(sampahFotoFile);
+      }
       if (isEditing) {
-        setJenisSampahList(prev => prev.map(s => s.id === editingSampah.id ? { ...s, nama_sampah: namaSampah, satuan } : s));
+        setJenisSampahList(prev => prev.map(s => s.id === editingSampah.id ? { 
+          ...s, 
+          nama_sampah: namaSampah, 
+          satuan,
+          foto_url: finalFotoUrl,
+          deskripsi: sampahDeskripsi
+        } : s));
       } else {
-        const newS: JenisSampah = { id: String(Date.now()), nama_sampah: namaSampah, satuan };
+        const newS: JenisSampah = { 
+          id: String(Date.now()), 
+          nama_sampah: namaSampah, 
+          satuan,
+          foto_url: finalFotoUrl || undefined,
+          deskripsi: sampahDeskripsi
+        };
         setJenisSampahList(prev => [...prev, newS]);
       }
       setSampahModalOpen(false);
+      setSaving(false);
       setSuccessMsg("Kategori sampah berhasil disimpan!");
       return;
     }
 
     try {
+      // Upload foto jika ada file baru yang dipilih
+      if (sampahFotoFile) {
+        // Hapus foto lama jika ada
+        if (isEditing && editingSampah?.foto_url) {
+          await deleteStorageFile(editingSampah.foto_url);
+        }
+
+        const fileExt = sampahFotoFile.name.split(".").pop();
+        const fileName = `categories/sampah_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("timbangan-photos")
+          .upload(fileName, sampahFotoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("timbangan-photos")
+          .getPublicUrl(fileName);
+        
+        finalFotoUrl = publicUrlData?.publicUrl || "";
+      }
+
       if (isEditing) {
         const { error } = await supabase
           .from("jenis_sampah")
-          .update({ nama_sampah: namaSampah, satuan })
+          .update({ 
+            nama_sampah: namaSampah, 
+            satuan,
+            foto_url: finalFotoUrl || null,
+            deskripsi: sampahDeskripsi
+          })
           .eq("id", editingSampah.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("jenis_sampah")
-          .insert({ nama_sampah: namaSampah, satuan });
+          .insert({ 
+            nama_sampah: namaSampah, 
+            satuan,
+            foto_url: finalFotoUrl || null,
+            deskripsi: sampahDeskripsi
+          });
         if (error) throw error;
       }
       loadSettings();
@@ -284,6 +348,8 @@ export default function SettingsPage() {
       setSuccessMsg("Kategori sampah berhasil disimpan!");
     } catch (err: any) {
       setErrorMsg(err.message || "Gagal menyimpan kategori.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -296,6 +362,11 @@ export default function SettingsPage() {
     }
 
     try {
+      const target = jenisSampahList.find(s => s.id === id);
+      if (target?.foto_url) {
+        await deleteStorageFile(target.foto_url);
+      }
+
       const { error } = await supabase.from("jenis_sampah").delete().eq("id", id);
       if (error) throw error;
       loadSettings();
@@ -552,6 +623,11 @@ export default function SettingsPage() {
 
     try {
       if (fotoFile) {
+        // Hapus foto lama jika ada
+        if (isEditing && editingOfficer?.foto_url) {
+          await deleteStorageFile(editingOfficer.foto_url);
+        }
+
         const fileExt = fotoFile.name.split(".").pop();
         const cleanEmail = email.replace(/[^a-zA-Z0-9]/g, "_");
         const fileName = `profiles/officer_${cleanEmail}_${Date.now()}.${fileExt}`;
@@ -637,6 +713,10 @@ export default function SettingsPage() {
     }
 
     try {
+      if (officer.foto_url) {
+        await deleteStorageFile(officer.foto_url);
+      }
+
       const { error } = await supabase.from("users").delete().eq("id", officer.id);
       if (error) throw error;
 
@@ -744,16 +824,32 @@ export default function SettingsPage() {
             <table className="w-full text-left border-collapse text-xs font-semibold text-[#202A14]">
               <thead>
                 <tr className="bg-[#E2E8D5]/30 border-b border-[#E2E8D5] text-[10px] font-black uppercase tracking-wider text-[#202A14]/70">
+                  <th className="py-4 px-6">Foto Contoh</th>
                   <th className="py-4 px-6">Nama Kategori Sampah</th>
-                  <th className="py-4 px-6">Satuan Timbangan</th>
+                  <th className="py-4 px-6">Satuan</th>
+                  <th className="py-4 px-6">Panduan Pemilahan Mandiri</th>
                   <th className="py-4 px-6 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8D5]/25">
                 {jenisSampahList.map((s) => (
                   <tr key={s.id} className="hover:bg-[#F9F9F6]">
+                    <td className="py-3.5 px-6">
+                      {s.foto_url ? (
+                        <img 
+                          src={s.foto_url} 
+                          alt={s.nama_sampah} 
+                          className="h-10 w-10 rounded-xl object-cover border border-[#E2E8D5] shadow-sm"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 bg-[#E2E8D5]/60 rounded-xl flex items-center justify-center text-[9px] font-black text-[#5E7A3E]">
+                          Tanpa Foto
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3.5 px-6 font-black text-sm text-[#5E7A3E]">{s.nama_sampah}</td>
                     <td className="py-3.5 px-6 uppercase font-bold text-[#202A14]/60">{s.satuan}</td>
+                    <td className="py-3.5 px-6 font-bold text-zinc-600 max-w-xs truncate">{s.deskripsi || "-"}</td>
                     <td className="py-3.5 px-6">
                       <div className="flex justify-center gap-2">
                         <button
@@ -998,7 +1094,7 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               {errorMsg && (
                 <div className="bg-red-50 text-red-800 p-3 rounded-[1.25rem] text-xs font-semibold flex items-center gap-2 border border-red-200">
                   <AlertCircle className="h-4.5 w-4.5 text-red-600" />
@@ -1029,11 +1125,69 @@ export default function SettingsPage() {
                   className="w-full px-4 py-3 bg-white border-2 border-[#E2E8D5] focus:border-[#5E7A3E] rounded-full text-sm font-semibold outline-none"
                 />
               </div>
+
+              {/* Input Foto Contoh Sampah Fisik */}
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-[#202A14]/75 pl-3">
+                  Foto Contoh Fisik Sampah
+                </label>
+                <div className="flex items-center gap-4 pl-3">
+                  {sampahFotoPreview ? (
+                    <img 
+                      src={sampahFotoPreview} 
+                      alt="Preview contoh" 
+                      className="h-14 w-14 rounded-2xl object-cover border-2 border-[#E2E8D5] shadow-sm"
+                    />
+                  ) : (
+                    <div className="h-14 w-14 bg-[#E2E8D5] rounded-2xl flex items-center justify-center text-[9px] font-bold text-[#202A14]/50 text-center">
+                      Belum Ada
+                    </div>
+                  )}
+                  
+                  <div className="relative bg-[#E2E8D5]/40 hover:bg-[#E2E8D5]/60 border-2 border-dashed border-[#E2E8D5] rounded-full py-2 px-4 flex items-center justify-center cursor-pointer transition-all">
+                    <span className="text-xs font-black text-[#5E7A3E]">PILIH / UNGGAH FOTO</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 1024 * 1024) {
+                            alert("Ukuran foto contoh maksimal 1MB.");
+                            e.target.value = "";
+                            return;
+                          }
+                          setSampahFotoFile(file);
+                          setSampahFotoPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Input Panduan Pemilahan Mandiri */}
+              <div className="space-y-1">
+                <label className="text-xs font-black uppercase tracking-wider text-[#202A14]/75 pl-3">
+                  Panduan Pemilahan dari Rumah (Petunjuk Warga)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Contoh: Bersihkan dari sisa cairan, keringkan, dan tumpuk dengan rapi dari rumah."
+                  value={sampahDeskripsi}
+                  onChange={(e) => setSampahDeskripsi(e.target.value)}
+                  className="w-full px-4 py-3 bg-white border-2 border-[#E2E8D5] focus:border-[#5E7A3E] rounded-2xl text-xs font-semibold outline-none"
+                />
+              </div>
+
             </div>
 
             <div className="p-4 bg-white border-t border-[#E2E8D5] flex gap-3">
               <button type="button" onClick={() => setSampahModalOpen(false)} className="flex-1 border-2 border-[#E2E8D5] text-[#202A14] font-extrabold text-xs py-3 rounded-full">BATAL</button>
-              <button type="submit" className="flex-1 bg-[#5E7A3E] text-white font-extrabold text-xs py-3 rounded-full shadow-sm">SIMPAN</button>
+              <button type="submit" disabled={saving} className="flex-1 bg-[#5E7A3E] text-white font-extrabold text-xs py-3 rounded-full shadow-sm disabled:opacity-50">
+                {saving ? "MENYIMPAN..." : "SIMPAN KATEGORI"}
+              </button>
             </div>
           </form>
         </div>

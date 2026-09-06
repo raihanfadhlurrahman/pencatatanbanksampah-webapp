@@ -136,7 +136,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-[#F9F9F6] text-[#202A14] flex flex-col md:flex-row font-sans">
       
       {/* MOBILE HEADER (Terinspirasi uireference.jpg layout) */}
-      <header className="md:hidden bg-[#5E7A3E] text-white py-4 px-5 flex items-center justify-between shadow-md">
+      <header className="md:hidden bg-[#5E7A3E] text-white py-4 px-5 flex items-center justify-between shadow-md print:hidden">
         <div className="flex items-center gap-2.5">
           {/* Avatar Bulat Foto Profil Petugas (User Identity) */}
           {profile.foto_url ? (
@@ -165,13 +165,13 @@ export default function DashboardLayout({
         </button>
       </header>
 
-      {/* SIDEBAR NAVIGASI (DESKTOP LAYOUT - Terinspirasi uireference.jpg sidebar) */}
+      {/* SIDEBAR NAVIGASI (DESKTOP LAYOUT) */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-[#E2E8D5] p-5 shadow-lg border-r border-[#5E7A3E]/10
-        transform md:translate-x-0 md:relative md:flex md:flex-col transition-transform duration-300 ease-in-out
+        transform md:translate-x-0 md:relative md:flex md:flex-col transition-transform duration-300 ease-in-out print:hidden
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
-        
+
         {/* CLOSE BUTTON MOBILE */}
         <button 
           onClick={() => setSidebarOpen(false)}
@@ -180,20 +180,26 @@ export default function DashboardLayout({
           <X className="h-5 w-5" />
         </button>
 
-        {/* LOGO DUSUN & JUDUL APLIKASI (Atas Sidebar) */}
-        <div className="flex flex-col items-center text-center pb-4 border-b border-[#5E7A3E]/20 mb-4 mt-2 md:mt-0">
-          <img 
-            src="/image/logoBasah.png" 
-            alt="Logo BASAH Rejosari" 
-            className="h-14 w-auto object-contain mb-2 drop-shadow-sm" 
-          />
-          <h1 className="text-xs font-black uppercase tracking-wider text-[#5E7A3E]">
-            BASAH REJOSARI
-          </h1>
+        {/* LOGO & NAMA APLIKASI */}
+        <div className="flex items-center gap-3 pb-6 border-b border-[#5E7A3E]/15">
+          <div className="bg-white p-2 rounded-2xl shadow-sm">
+            <img 
+              src="/image/logoBasah.png" 
+              alt="Logo BASAH Rejosari" 
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+          <div>
+            <h2 className="font-black text-[#202A14] text-base tracking-wide uppercase">BASAH REJOSARI</h2>
+            <p className="text-[10px] text-[#202A14]/65 font-bold uppercase">Dusun Rejosari</p>
+          </div>
         </div>
 
-        {/* MENU UTAMA */}
-        <nav className="flex-1 space-y-2 overflow-y-auto">
+        {/* MENU LIST NAVIGASI */}
+        <div className="flex-1 py-6 space-y-1.5 overflow-y-auto">
+          <div className="px-3 pb-2 text-[10px] font-black uppercase text-[#202A14]/50 tracking-wider">
+            Menu Utama
+          </div>
           {allowedNavItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -203,57 +209,54 @@ export default function DashboardLayout({
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={`
-                  flex items-center gap-3 py-3 px-4 rounded-[1.25rem] text-sm font-black transition-all duration-200
+                  flex items-center gap-3 px-4 py-3 rounded-full font-bold text-xs transition-all duration-150
                   ${isActive 
-                    ? "bg-[#5E7A3E] text-white shadow-sm" 
-                    : "hover:bg-[#5E7A3E]/10 text-[#202A14]/85"
-                  }
+                    ? "bg-[#5E7A3E] text-white shadow-sm font-extrabold translate-x-1" 
+                    : "text-[#202A14]/80 hover:bg-white/60 hover:text-[#5E7A3E]"}
                 `}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-[#5E7A3E]"}`} />
-                {item.name}
+                <Icon className={`h-4.5 w-4.5 ${isActive ? "text-white" : "text-[#5E7A3E]"}`} />
+                <span>{item.name}</span>
               </Link>
             );
           })}
-        </nav>
+        </div>
 
-        {/* PROFIL PENGURUS & TOMBOL LOGOUT (Bawah Sidebar) */}
-        <div className="pt-3 border-t border-[#5E7A3E]/20 mt-3 space-y-2">
-          {/* Card Profil Pengurus */}
-          <div className="flex items-center gap-3 bg-white/80 p-2.5 rounded-[1.25rem] border border-[#5E7A3E]/15 shadow-sm">
+        {/* PROFIL PENGURUS & LOGOUT */}
+        <div className="pt-4 border-t border-[#5E7A3E]/15 space-y-3">
+          <div className="flex items-center gap-3 px-2">
             {profile.foto_url ? (
               <img 
                 src={profile.foto_url} 
                 alt="Foto Profil Petugas" 
-                className="h-10 w-10 rounded-full border-2 border-[#5E7A3E] object-cover shrink-0"
+                className="h-10 w-10 rounded-full border-2 border-white object-cover shadow-sm"
               />
             ) : (
-              <div className="bg-[#5E7A3E] text-white h-10 w-10 rounded-full flex items-center justify-center font-black text-xs shrink-0">
+              <div className="bg-[#5E7A3E] text-white h-10 w-10 rounded-full flex items-center justify-center font-black shadow-sm">
                 {profile.nama.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xs font-black truncate text-[#202A14]">{profile.nama}</h2>
-              <span className="text-[8px] font-black uppercase tracking-wider bg-[#5E7A3E] text-white px-1.5 py-0.5 rounded-full inline-block mt-0.5">
-                Role: {profile.role}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xs font-black text-[#202A14] truncate">{profile.nama}</h3>
+              <span className="text-[9px] font-extrabold uppercase text-[#5E7A3E] bg-white px-2 py-0.5 rounded-full inline-block mt-0.5 tracking-wider border border-[#5E7A3E]/20">
+                {profile.role}
               </span>
             </div>
           </div>
 
-          {/* Tombol Keluar */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-[1.25rem] text-xs font-black text-red-700 hover:bg-red-50 hover:text-red-800 transition-all duration-200"
+            className="w-full bg-red-50 hover:bg-red-100 text-red-700 font-extrabold text-xs py-2.5 px-4 rounded-full flex items-center justify-center gap-2 transition-all border border-red-200"
           >
-            <LogOut className="h-4 w-4 text-red-700" />
-            Keluar Sistem
+            <LogOut className="h-4 w-4" />
+            KELUAR (LOGOUT)
           </button>
         </div>
 
       </aside>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (Terinspirasi uireference.jpg Layar 4 - navigasi bawah kapsul) */}
-      <nav className="md:hidden fixed bottom-4 inset-x-4 z-40 bg-white/95 backdrop-blur border border-[#E2E8D5] rounded-full shadow-lg py-2.5 px-4 flex items-center justify-around">
+      {/* MOBILE BOTTOM NAVIGATION BAR */}
+      <nav className="md:hidden fixed bottom-4 inset-x-4 z-40 bg-white/95 backdrop-blur border border-[#E2E8D5] rounded-full shadow-lg py-2.5 px-4 flex items-center justify-around print:hidden">
         {allowedNavItems.slice(0, 4).map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;

@@ -28,8 +28,14 @@ CREATE TABLE IF NOT EXISTS jenis_sampah (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nama_sampah VARCHAR(100) UNIQUE NOT NULL, -- Contoh: "Botol Plastik", "Kardus", "Kaleng"
     satuan VARCHAR(20) DEFAULT 'kg',
+    foto_url TEXT,                             -- URL foto contoh fisik sampah terpilah
+    deskripsi TEXT,                            -- Panduan pemilahan singkat dari rumah
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- JIKA TABEL SUDAH ADA, JALANKAN COMMAND PERINTAH ALTER BERIKUT DI SUPABASE SQL EDITOR:
+-- ALTER TABLE jenis_sampah ADD COLUMN IF NOT EXISTS foto_url TEXT;
+-- ALTER TABLE jenis_sampah ADD COLUMN IF NOT EXISTS deskripsi TEXT;
 
 -- 4. Tabel harga_nasabah (Harga Beli & Acuan Aktif)
 CREATE TABLE IF NOT EXISTS harga_nasabah (

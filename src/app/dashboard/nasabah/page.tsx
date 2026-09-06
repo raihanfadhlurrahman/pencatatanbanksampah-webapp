@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, deleteStorageFile } from "@/lib/supabase";
 import { 
   Users, 
   Search, 
@@ -17,8 +17,10 @@ import {
   TrendingDown, 
   ArrowDownLeft, 
   ArrowUpRight,
-  AlertCircle
+  AlertCircle,
+  BookOpen
 } from "lucide-react";
+import BukuTabunganModal from "@/components/BukuTabunganModal";
 
 interface Nasabah {
   id: string;
@@ -57,6 +59,12 @@ export default function NasabahPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingNasabah, setEditingNasabah] = useState<Nasabah | null>(null);
+
+  // State Buku Tabungan Fisik
+  const [bukuTabunganOpen, setBukuTabunganOpen] = useState(false);
+  const [bukuTabunganNasabah, setBukuTabunganNasabah] = useState<Nasabah | null>(null);
+  const [bukuTabunganRiwayat, setBukuTabunganRiwayat] = useState<RiwayatSaldo[]>([]);
+  const [bukuTabunganTotalBerat, setBukuTabunganTotalBerat] = useState(0);
 
   // Form Fields
   const [nama, setNama] = useState("");
@@ -122,6 +130,61 @@ export default function NasabahPage() {
 
       if (!error && data) {
         setRiwayat(data as any);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleOpenBukuTabungan = async (nasabah: Nasabah) => {
+    setBukuTabunganNasabah(nasabah);
+    setBukuTabunganOpen(true);
+
+    if (usingMock) {
+      setBukuTabunganRiwayat(MOCK_RIWAYAT[nasabah.id] || [
+        { id: "h1", tipe: "setoran", nominal: 25000, saldo_akhir: nasabah.saldo, keterangan: "Setoran Sampah Dusun", rincian_sampah: "Kardus Bekas (12.5 kg)", tanggal: new Date().toISOString() }
+      ]);
+      setBukuTabunganTotalBerat(16.5);
+      return;
+    }
+
+    try {
+      // 1. Fetch setoran details with jenis_sampah dari database Supabase
+      const { data: setoranDetails } = await supabase
+        .from("setoran")
+        .select("tanggal, berat, total_nilai, jenis_sampah(nama_sampah)")
+        .eq("nasabah_id", nasabah.id);
+
+      const setoranMapByDate: Record<string, string[]> = {};
+      let totBerat = 0;
+      setoranDetails?.forEach((s: any) => {
+        totBerat += Number(s.berat);
+        const dateKey = s.tanggal ? new Date(s.tanggal).toISOString().split("T")[0] : "";
+        const itemStr = `${s.jenis_sampah?.nama_sampah || "Sampah"} (${s.berat} kg)`;
+        if (!setoranMapByDate[dateKey]) setoranMapByDate[dateKey] = [];
+        setoranMapByDate[dateKey].push(itemStr);
+      });
+      setBukuTabunganTotalBerat(totBerat);
+
+      // 2. Fetch riwayat saldo
+      const { data: historyData } = await supabase
+        .from("riwayat_saldo")
+        .select("*")
+        .eq("nasabah_id", nasabah.id)
+        .order("tanggal", { ascending: true });
+
+      if (historyData) {
+        const enriched = historyData.map((h: any) => {
+          const dateKey = h.tanggal ? new Date(h.tanggal).toISOString().split("T")[0] : "";
+          const rincian = h.tipe === "setoran" && setoranMapByDate[dateKey]
+            ? setoranMapByDate[dateKey].join(", ")
+            : undefined;
+          return {
+            ...h,
+            rincian_sampah: rincian
+          };
+        });
+        setBukuTabunganRiwayat(enriched);
       }
     } catch (err) {
       console.error(err);
@@ -207,6 +270,11 @@ export default function NasabahPage() {
     try {
       // Upload foto profil jika ada berkas yang dipilih
       if (fotoFile) {
+        // Hapus foto lama jika ada
+        if (isEditing && editingNasabah?.foto_url) {
+          await deleteStorageFile(editingNasabah.foto_url);
+        }
+
         const fileExt = fotoFile.name.split(".").pop();
         const fileName = `profiles/nasabah_${currentNoNasabah}_${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
@@ -265,6 +333,11 @@ export default function NasabahPage() {
     }
 
     try {
+      const target = nasabahList.find(n => n.id === id);
+      if (target?.foto_url) {
+        await deleteStorageFile(target.foto_url);
+      }
+
       const { error } = await supabase
         .from("nasabah")
         .delete()
@@ -413,6 +486,15 @@ export default function NasabahPage() {
                 DETAIL & RIWAYAT
               </button>
 
+              <button
+                onClick={() => handleOpenBukuTabungan(nasabah)}
+                className="bg-[#5E7A3E]/10 hover:bg-[#5E7A3E]/20 text-[#5E7A3E] font-extrabold text-[11px] py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all"
+                title="Lihat / Cetak Buku Tabungan Fisik Warga"
+              >
+                <BookOpen className="h-4 w-4 text-[#5E7A3E]" />
+                TABUNGAN FISIK
+              </button>
+
               {profile && ["admin", "sekretaris", "bendahara"].includes(profile.role) && (
                 <>
                   <button
@@ -538,9 +620,19 @@ export default function NasabahPage() {
             <div className="p-4 bg-white border-t border-[#E2E8D5] flex gap-2">
               <button 
                 onClick={() => setDetailModalOpen(false)}
-                className="w-full bg-[#5E7A3E] hover:bg-[#5E7A3E]/95 text-white font-extrabold text-xs py-3 rounded-full shadow-sm"
+                className="flex-1 border-2 border-[#E2E8D5] hover:bg-[#E2E8D5]/30 text-[#202A14] font-extrabold text-xs py-3 rounded-full"
               >
-                TUTUP RIWAYAT
+                TUTUP
+              </button>
+              <button 
+                onClick={() => {
+                  setDetailModalOpen(false);
+                  handleOpenBukuTabungan(selectedNasabah);
+                }}
+                className="flex-1 bg-[#5E7A3E] hover:bg-[#5E7A3E]/95 text-white font-extrabold text-xs py-3 rounded-full flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <BookOpen className="h-4 w-4" />
+                TABUNGAN FISIK
               </button>
             </div>
 
@@ -693,6 +785,15 @@ export default function NasabahPage() {
           </form>
         </div>
       )}
+
+      {/* MODAL CETAK BUKU TABUNGAN FISIK */}
+      <BukuTabunganModal
+        isOpen={bukuTabunganOpen}
+        onClose={() => setBukuTabunganOpen(false)}
+        nasabah={bukuTabunganNasabah}
+        riwayat={bukuTabunganRiwayat}
+        totalBerat={bukuTabunganTotalBerat}
+      />
 
     </div>
   );

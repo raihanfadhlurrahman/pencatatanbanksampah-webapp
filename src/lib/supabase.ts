@@ -13,3 +13,25 @@ export const supabase = createClient(
   supabaseUrl || 'https://placeholder-project.supabase.co',
   supabaseAnonKey || 'placeholder-key'
 );
+
+/**
+ * Fungsi pembantu untuk menghapus file lama dari Supabase Storage (bucket: timbangan-photos)
+ * @param publicUrl URL publik file di Supabase Storage
+ */
+export const deleteStorageFile = async (publicUrl: string | undefined | null) => {
+  if (!publicUrl || typeof publicUrl !== "string") return;
+  try {
+    const parts = publicUrl.split("timbangan-photos/");
+    if (parts.length > 1) {
+      const filePath = decodeURIComponent(parts[1].split("?")[0]);
+      if (filePath) {
+        const { error } = await supabase.storage.from("timbangan-photos").remove([filePath]);
+        if (error) {
+          console.warn("Peringatan saat menghapus file lama dari Supabase storage:", error.message);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Gagal menghapus file lama dari storage Supabase:", err);
+  }
+};
