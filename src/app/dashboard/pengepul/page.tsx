@@ -15,7 +15,8 @@ import {
   X, 
   CheckCircle, 
   AlertCircle,
-  TrendingDown
+  TrendingDown,
+  PackageCheck
 } from "lucide-react";
 
 interface Pengepul {
@@ -78,8 +79,9 @@ export default function PengepulPage() {
   const [selectedSampahId, setSelectedSampahId] = useState("");
   const [beratJual, setBeratJual] = useState<number>(0);
 
-  // Helper types (for dynamic selections)
+  // Helper types & Stock Map
   const [typesList, setTypesList] = useState<any[]>([]);
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
     loadData();
@@ -128,6 +130,7 @@ export default function PengepulPage() {
         .from("penjualan_pengepul")
         .select(`
           id,
+          jenis_sampah_id,
           berat,
           harga_jual_saat_ini,
           total_nilai,
@@ -140,6 +143,30 @@ export default function PengepulPage() {
           )
         `)
         .order("tanggal", { ascending: false });
+
+      // Fetch Data Setoran Masuk untuk Kalkulasi Stok Gudang
+      const { data: setoranData } = await supabase
+        .from("setoran")
+        .select("jenis_sampah_id, berat");
+
+      // Hitung Akumulasi Stok Bersih di Gudang (Total Masuk - Total Terjual)
+      const stockMapCalc: Record<string, number> = {};
+      if (setoranData) {
+        setoranData.forEach((s: any) => {
+          if (s.jenis_sampah_id) {
+            stockMapCalc[s.jenis_sampah_id] = (stockMapCalc[s.jenis_sampah_id] || 0) + Number(s.berat || 0);
+          }
+        });
+      }
+      if (salesData) {
+        salesData.forEach((s: any) => {
+          const trashId = s.jenis_sampah_id;
+          if (trashId) {
+            stockMapCalc[trashId] = Math.max(0, (stockMapCalc[trashId] || 0) - Number(s.berat || 0));
+          }
+        });
+      }
+      setStockMap(stockMapCalc);
 
       if (pengError) {
         setUsingMock(true);
@@ -278,6 +305,13 @@ export default function PengepulPage() {
     setJualModalOpen(true);
   };
 
+  // Handler saat memilih jenis sampah: Otomatis set berat ke SELURUH stok yang tercatat
+  const handleSelectSampah = (trashId: string) => {
+    setSelectedSampahId(trashId);
+    const availableStock = stockMap[trashId] || 0;
+    setBeratJual(availableStock > 0 ? parseFloat(availableStock.toFixed(2)) : 0);
+  };
+
   // Cari harga jual pengepul aktif dari tabel harga
   const activeHargaPengepul = hargaList.find(
     h => h.pengepul_id === selectedPengepulId && h.jenis_sampah_id === selectedSampahId
@@ -312,6 +346,10 @@ export default function PengepulPage() {
           tanggal: new Date().toISOString(),
         };
         setPenjualanList(prev => [newSale, ...prev]);
+        setStockMap(prev => ({
+          ...prev,
+          [selectedSampahId]: Math.max(0, (prev[selectedSampahId] || 0) - beratJual)
+        }));
         setJualModalOpen(false);
         setSaving(false);
       }, 1000);
@@ -767,21 +805,79 @@ export default function PengepulPage() {
                   required
                   disabled={!selectedPengepulId}
                   value={selectedSampahId}
-                  onChange={(e) => setSelectedSampahId(e.target.value)}
+                  onChange={(e) => handleSelectSampah(e.target.value)}
                   className="w-full px-4 py-3 bg-white border-2 border-[#E2E8D5] focus:border-[#5E7A3E] rounded-full text-sm font-semibold outline-none"
                 >
                   <option value="">-- Pilih Jenis Sampah --</option>
-                  {typesList.map(t => (
-                    <option key={t.id} value={t.id}>{t.nama_sampah}</option>
-                  ))}
+                  {typesList.map(t => {
+                    const stock = stockMap[t.id] || 0;
+                    return (
+                      <option key={t.id} value={t.id}>
+                        {t.nama_sampah} (Stok: {stock > 0 ? `${stock.toFixed(1)} kg` : "0 kg"})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
+              {/* Tampilan Ringkasan Stok Gudang */}
+              {selectedSampahId && (
+                <div className="bg-[#E2E8D5]/40 border border-[#5E7A3E]/20 p-3 rounded-[1.25rem] flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-[#5E7A3E]/10 text-[#5E7A3E] rounded-full">
+                      <PackageCheck className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-[#202A14]/70 uppercase tracking-wider">
+                        Stok Tercatat di Gudang
+                      </p>
+                      <p className="text-sm font-black text-[#5E7A3E]">
+                        {(stockMap[selectedSampahId] || 0).toFixed(2)} kg
+                      </p>
+                    </div>
+                  </div>
+
+                  {(stockMap[selectedSampahId] || 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setBeratJual(parseFloat((stockMap[selectedSampahId] || 0).toFixed(2)))}
+                      className="text-[11px] font-black bg-[#5E7A3E] hover:bg-[#5E7A3E]/90 text-white px-3 py-1.5 rounded-full transition-all shadow-xs"
+                      title="Gunakan seluruh stok yang tercatat"
+                    >
+                      Gunakan Semua
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Peringatan jika berat melebihi stok tercatat */}
+              {selectedSampahId && (stockMap[selectedSampahId] || 0) > 0 && beratJual > (stockMap[selectedSampahId] || 0) && (
+                <p className="text-[11px] text-amber-800 font-bold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                  <span>Berat input ({beratJual} kg) melebihi stok tercatat ({(stockMap[selectedSampahId] || 0).toFixed(2)} kg).</span>
+                </p>
+              )}
+
+              {/* Info jika stok kosong */}
+              {selectedSampahId && (stockMap[selectedSampahId] || 0) <= 0 && (
+                <p className="text-[11px] text-amber-800 font-bold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                  <span>Belum ada catatan setoran warga yang tersedia untuk jenis sampah ini (Stok: 0 kg).</span>
+                </p>
+              )}
+
               {/* Input Berat */}
               <div className="space-y-1">
-                <label className="text-xs font-black uppercase tracking-wider text-[#202A14]/75 pl-3">
-                  Berat Sampah Terjual (kg)
-                </label>
+                <div className="flex justify-between items-center pl-3 pr-1">
+                  <label className="text-xs font-black uppercase tracking-wider text-[#202A14]/75">
+                    Berat Sampah Terjual (kg)
+                  </label>
+                  {selectedSampahId && (stockMap[selectedSampahId] || 0) > 0 && (
+                    <span className="text-[10px] text-[#5E7A3E] font-bold">
+                      Default: Seluruh Stok
+                    </span>
+                  )}
+                </div>
                 <input
                   type="number"
                   step="0.01"
