@@ -18,6 +18,7 @@ import {
   Search,
   ChevronRight as ArrowRight,
   Calendar,
+  Clock,
   DollarSign,
   BookOpen
 } from "lucide-react";
@@ -124,6 +125,17 @@ export default function Home() {
   // Splash Screen States
   const [showSplash, setShowSplash] = useState(true);
   const [splashFading, setSplashFading] = useState(false);
+
+  // Realtime Clock State
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentDateTime(new Date());
+    const clockTimer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
 
   useEffect(() => {
     const timer1 = setTimeout(() => {
@@ -418,6 +430,23 @@ export default function Home() {
     });
   };
 
+  const formatRealtimeDate = (date: Date) => {
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  const formatRealtimeTime = (date: Date) => {
+    return date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).replace(/\./g, ":");
+  };
+
   return (
     <div className="min-h-screen bg-[#F9F9F6] text-[#202A14] flex flex-col font-sans">
       
@@ -466,6 +495,20 @@ export default function Home() {
         <p className="text-sm font-medium opacity-90 mt-1">
           BAnk SAmpaH Rejosari - Dusun Rejosari, Wedomartani
         </p>
+
+        {/* BADGE WAKTU REALTIME */}
+        <div className="mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-white/20 text-white border border-white/25 shadow-sm backdrop-blur-sm">
+          <Calendar className="h-3.5 w-3.5 text-white/90" />
+          <span>
+            {currentDateTime ? formatRealtimeDate(currentDateTime) : "Memuat tanggal..."}
+          </span>
+          <span className="opacity-60">•</span>
+          <Clock className="h-3.5 w-3.5 text-white/90" />
+          <span>
+            {currentDateTime ? `${formatRealtimeTime(currentDateTime)} WIB` : "--:--:-- WIB"}
+          </span>
+          <span className="inline-block h-2 w-2 rounded-full bg-emerald-300 animate-pulse ml-0.5" title="Realtime aktif" />
+        </div>
         
         {usingMock && (
           <span className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white shadow-sm animate-pulse">
@@ -689,10 +732,17 @@ export default function Home() {
           {groupedHarga.map((group) => (
             <div key={group.pengepul_id} className="bg-white p-5 rounded-[2rem] shadow-sm border border-[#E2E8D5]/30 space-y-3">
               <div className="flex items-center justify-between border-b border-dashed border-[#E2E8D5] pb-2">
-                <h3 className="text-sm font-black text-[#5E7A3E] flex items-center gap-1.5">
-                  <Truck className="h-4 w-4 text-[#5E7A3E]" />
-                  {group.pengepul_nama}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black text-[#5E7A3E] flex items-center gap-1.5">
+                    <Truck className="h-4 w-4 text-[#5E7A3E]" />
+                    {group.pengepul_nama}
+                  </h3>
+                  {group.items.length > 2 && (
+                    <span className="text-[9px] bg-[#5E7A3E]/10 text-[#5E7A3E] px-2 py-0.5 rounded-full font-extrabold">
+                      {group.items.length} Jenis Sampah
+                    </span>
+                  )}
+                </div>
                 {group.jadwal_ambil && (
                   <span className="text-[9px] bg-[#E2E8D5] text-[#202A14] px-2 py-0.5 rounded-full font-bold">
                     Jadwal: {group.jadwal_ambil}
@@ -700,7 +750,7 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 max-h-[250px] overflow-y-auto pr-1.5 custom-scrollbar">
                 {group.items.map((item) => (
                   <div 
                     key={item.jenis_sampah_id} 
@@ -743,6 +793,14 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+
+              {group.items.length > 2 && (
+                <div className="pt-0.5 text-center border-t border-dashed border-[#E2E8D5]/60">
+                  <span className="text-[9px] font-bold text-[#202A14]/45 inline-flex items-center gap-1">
+                    <span>↕ Scroll untuk melihat {group.items.length - 2} jenis sampah lainnya</span>
+                  </span>
+                </div>
+              )}
             </div>
           ))}
 

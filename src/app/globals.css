@@ -48,3 +48,25 @@ body {
   }
 }
 
+/* ======================================================== */
+/* CUSTOM SCROLLBAR UNTUK LIST HARGA & CONTAINER */
+/* ======================================================== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(226, 232, 213, 0.4);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #A6BF83;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5E7A3E;
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #A6BF83 rgba(226, 232, 213, 0.4);
+}
+

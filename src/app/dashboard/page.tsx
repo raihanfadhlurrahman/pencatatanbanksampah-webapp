@@ -11,6 +11,7 @@ import {
   Truck, 
   TrendingUp, 
   Calendar,
+  Clock,
   ChevronRight,
   Settings,
   AlertCircle,
@@ -79,6 +80,17 @@ export default function DashboardPage() {
   const [transaksiList, setTransaksiList] = useState<TransaksiTerbaru[]>(MOCK_TRANSAKSI);
   const [loading, setLoading] = useState(true);
   const [usingMock, setUsingMock] = useState(false);
+
+  // Realtime Clock State
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentDateTime(new Date());
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Leaderboard States in Dashboard
   const [leadBeratList, setLeadBeratList] = useState<LeadBerat[]>([]);
@@ -428,6 +440,23 @@ export default function DashboardPage() {
     });
   };
 
+  const formatRealtimeDate = (date: Date) => {
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  const formatRealtimeTime = (date: Date) => {
+    return date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).replace(/\./g, ":");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -461,10 +490,21 @@ export default function DashboardPage() {
           </p>
         </div>
         
-        {/* TANGGAL HARI INI */}
-        <div className="bg-[#E2E8D5] text-[#202A14] py-2.5 px-4 rounded-[1.25rem] inline-flex items-center gap-2 text-xs font-black self-start">
-          <Calendar className="h-4 w-4 text-[#5E7A3E]" />
-          <span>Sabtu, 29 Agustus 2026</span>
+        {/* TANGGAL & WAKTU REALTIME */}
+        <div className="bg-[#E2E8D5] text-[#202A14] py-2 px-4 rounded-[1.25rem] flex flex-col sm:items-end self-start shadow-sm border border-[#5E7A3E]/10">
+          <div className="flex items-center gap-2 text-xs font-black">
+            <Calendar className="h-3.5 w-3.5 text-[#5E7A3E]" />
+            <span>
+              {currentDateTime ? formatRealtimeDate(currentDateTime) : "Memuat tanggal..."}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#5E7A3E] mt-0.5">
+            <Clock className="h-3 w-3 text-[#5E7A3E]" />
+            <span>
+              {currentDateTime ? `${formatRealtimeTime(currentDateTime)} WIB` : "--:--:-- WIB"}
+            </span>
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="Realtime aktif" />
+          </div>
         </div>
       </div>
 
